@@ -126,6 +126,11 @@ func (d *Driver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags
 	driverFlag.Options["tags"] = &types.Flag{
 		Type:  types.StringSliceType,
 		Usage: "The map of Kubernetes labels (key/value pairs) to be applied to each node",
+		Default: &types.Default{
+			DefaultStringSlice: &types.StringSlice{
+				Value: []string{},
+			},
+		},
 	}
 	driverFlag.Options["node-pools"] = &types.Flag{
 		Type:  types.StringSliceType,
@@ -137,6 +142,7 @@ func (d *Driver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags
 // SetDriverOptions implements driver interface
 func getStateFromOpts(driverOptions *types.DriverOptions) (state, error) {
 	d := state{
+		Tags:      []string{},
 		NodePools: map[string]int{},
 		ClusterInfo: types.ClusterInfo{
 			Metadata: map[string]string{},
