@@ -284,9 +284,9 @@ func (d *Driver) Update(ctx context.Context, info *types.ClusterInfo, opts *type
 		return nil, fmt.Errorf("failed to parse cluster id: %s", err)
 	}
 
-	if !sets.NewString(state.Tags...).Equal(sets.NewString(newState.Tags...)) {
+	if state.Label != newState.Label || !sets.NewString(state.Tags...).Equal(sets.NewString(newState.Tags...)) {
 		_, err = client.UpdateLKECluster(context.Background(), clusterID, raw.LKEClusterUpdateOptions{
-			Label: state.Label,
+			Label: newState.Label,
 			Tags:  &newState.Tags,
 		})
 		if err != nil {
