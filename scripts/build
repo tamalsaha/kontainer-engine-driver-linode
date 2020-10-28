@@ -10,10 +10,10 @@ mkdir -p bin
 
 CGO_ENABLED=0 go build -ldflags "-X main.VERSION=$VERSION $LINKFLAGS" -o bin/kontainer-engine-driver-linode
 echo built default
-for i in darwin linux
+for i in linux
 do
     if [ $i == "linux" ]; then
-        for arch in amd64 arm64
+        for arch in amd64
         do
             export GOOS=$i GOARCH=$arch
             go build -o bin/kontainer-engine-driver-linode-$i-$arch
