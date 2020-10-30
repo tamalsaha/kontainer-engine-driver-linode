@@ -149,6 +149,12 @@ func getStateFromOpts(driverOptions *types.DriverOptions) (state, error) {
 		},
 	}
 
+	if driverOptions.StringOptions != nil {
+		for k, v := range driverOptions.StringOptions {
+			logrus.Debugln("Driver Options =====", k, v)
+		}
+	}
+
 	d.Name = options.GetValueFromDriverOptions(driverOptions, types.StringType, "name").(string)
 	d.Label = options.GetValueFromDriverOptions(driverOptions, types.StringType, "label").(string)
 	d.Description = options.GetValueFromDriverOptions(driverOptions, types.StringType, "description").(string)
