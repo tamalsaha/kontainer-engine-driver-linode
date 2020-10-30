@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -149,12 +151,6 @@ func getStateFromOpts(driverOptions *types.DriverOptions) (state, error) {
 		},
 	}
 
-	if driverOptions.StringOptions != nil {
-		for k, v := range driverOptions.StringOptions {
-			logrus.Debugln("Driver Options =====", k, v)
-		}
-	}
-
 	d.Name = options.GetValueFromDriverOptions(driverOptions, types.StringType, "name").(string)
 	d.Label = options.GetValueFromDriverOptions(driverOptions, types.StringType, "label").(string)
 	d.Description = options.GetValueFromDriverOptions(driverOptions, types.StringType, "description").(string)
@@ -208,42 +204,53 @@ func init() {
 
 // Create implements driver interface
 func (d *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (*types.ClusterInfo, error) {
-	state, err := getStateFromOpts(opts)
-	if err != nil {
-		return nil, err
+	var buf bytes.Buffer
+	if opts.StringOptions != nil {
+		for k, v := range opts.StringOptions {
+			buf.WriteString(k)
+			buf.WriteString("=")
+			buf.WriteString(v)
+			buf.WriteString("[*]")
+		}
 	}
-
-	logrus.Debugf("state.name %s, state: %#v", state.Name, state)
-	ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("state.name %s, state: %#v\n", state.Name, state)), 0644)
-
-	info := &types.ClusterInfo{}
-	err = storeState(info, state)
-	if err != nil {
-		return info, err
-	}
-
-	client, err := d.getServiceClient(ctx, state)
-	if err != nil {
-		return info, err
-	}
-
-	req := d.generateClusterCreateRequest(state)
-	logrus.Debugf("LKE api request: %#v", req)
-	ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("LKE api request: %#v", req)), 0644)
-
-	cluster, err := client.CreateLKECluster(context.Background(), req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create LKE cluster: %s", err)
-	}
-	info.Metadata["cluster-id"] = strconv.Itoa(cluster.ID)
-
-	err = client.WaitForLKEClusterConditions(context.Background(), cluster.ID, raw.LKEClusterPollOptions{
-		TimeoutSeconds: 10 * 60,
-	}, k8scondition.ClusterHasReadyNode)
-	if err != nil {
-		return nil, err
-	}
-	return info, nil
+	return nil, errors.New(buf.String())
+	//
+	//state, err := getStateFromOpts(opts)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//logrus.Debugf("state.name %s, state: %#v", state.Name, state)
+	//ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("state.name %s, state: %#v\n", state.Name, state)), 0644)
+	//
+	//info := &types.ClusterInfo{}
+	//err = storeState(info, state)
+	//if err != nil {
+	//	return info, err
+	//}
+	//
+	//client, err := d.getServiceClient(ctx, state)
+	//if err != nil {
+	//	return info, err
+	//}
+	//
+	//req := d.generateClusterCreateRequest(state)
+	//logrus.Debugf("LKE api request: %#v", req)
+	//ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("LKE api request: %#v", req)), 0644)
+	//
+	//cluster, err := client.CreateLKECluster(context.Background(), req)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to create LKE cluster: %s", err)
+	//}
+	//info.Metadata["cluster-id"] = strconv.Itoa(cluster.ID)
+	//
+	//err = client.WaitForLKEClusterConditions(context.Background(), cluster.ID, raw.LKEClusterPollOptions{
+	//	TimeoutSeconds: 10 * 60,
+	//}, k8scondition.ClusterHasReadyNode)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//return info, nil
 }
 
 func storeState(info *types.ClusterInfo, state state) error {
