@@ -114,7 +114,7 @@ func logRequest(r2 *http.Request) {
 }
 
 func logResponse(r2 *http.Response) {
-	payloadBytes, err := httputil.DumpResponse(r2, true)
+	payloadBytes, err := httputil.DumpResponse(r2, false)
 	if err != nil {
 		panic(err)
 	}
