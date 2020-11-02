@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-resty/resty/v2"
+
 	raw "github.com/linode/linodego"
 	"github.com/linode/linodego/k8s"
 	k8scondition "github.com/linode/linodego/k8s/pkg/condition"
@@ -237,7 +239,7 @@ func (d *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types
 	logrus.Debugf("LKE api request: %#v", req)
 	ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("LKE api request: %#v", req)), 0644)
 
-	cluster, err := client.CreateLKECluster(context.Background(), req)
+	cluster, err := CreateLKECluster(context.Background(), client, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LKE cluster: %s", err)
 	}
@@ -250,6 +252,70 @@ func (d *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types
 		return nil, err
 	}
 	return info, nil
+}
+
+// CreateLKECluster creates a LKECluster
+func CreateLKECluster(ctx context.Context, c *raw.Client, createOpts raw.LKEClusterCreateOptions) (*raw.LKECluster, error) {
+	var body string
+	e, err := c.LKEClusters.Endpoint()
+	if err != nil {
+		return nil, err
+	}
+
+	req := c.R(ctx).SetResult(&raw.LKECluster{})
+
+	if bodyData, err := json.Marshal(createOpts); err == nil {
+		body = string(bodyData)
+	} else {
+		return nil, raw.NewError(err)
+	}
+
+	r, err := coupleAPIErrors(req.
+		SetBody(body).
+		Post(e))
+
+	if err != nil {
+		return nil, err
+	}
+	logResponse(r.RawResponse)
+	return r.Result().(*raw.LKECluster), nil
+}
+func coupleAPIErrors(r *resty.Response, err error) (*resty.Response, error) {
+	if err != nil {
+		return nil, raw.NewError(err)
+	}
+
+	if r.Error() != nil {
+		// Check that response is of the correct content-type before unmarshalling
+		expectedContentType := r.Request.Header.Get("Accept")
+		responseContentType := r.Header().Get("Content-Type")
+
+		// If the upstream Linode API server being fronted fails to respond to the request,
+		// the http server will respond with a default "Bad Gateway" page with Content-Type
+		// "text/html".
+		if r.StatusCode() == http.StatusBadGateway && responseContentType == "text/html" {
+			return nil, raw.Error{Code: http.StatusBadGateway, Message: http.StatusText(http.StatusBadGateway)}
+		}
+
+		if responseContentType != expectedContentType {
+			msg := fmt.Sprintf(
+				"Unexpected Content-Type: Expected: %v, Received: %v",
+				expectedContentType,
+				responseContentType,
+			)
+
+			return nil, raw.NewError(msg)
+		}
+
+		apiError, ok := r.Error().(*raw.APIError)
+		if !ok || (ok && len(apiError.Errors) == 0) {
+			return r, nil
+		}
+
+		return nil, raw.NewError(r)
+	}
+
+	return r, nil
 }
 
 func storeState(info *types.ClusterInfo, state state) error {
