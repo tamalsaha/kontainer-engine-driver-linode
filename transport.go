@@ -103,7 +103,7 @@ func logRequest(r2 *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "text/plain")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
