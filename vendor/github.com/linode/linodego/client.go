@@ -2,6 +2,7 @@ package linodego
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -105,7 +106,7 @@ type Client struct {
 }
 
 func init() {
-	// Wether or not we will enable Resty debugging output
+	// Whether or not we will enable Resty debugging output
 	if apiDebug, ok := os.LookupEnv("LINODE_DEBUG"); ok {
 		if parsed, err := strconv.ParseBool(apiDebug); err == nil {
 			envDebug = parsed
@@ -120,6 +121,15 @@ func init() {
 func (c *Client) SetUserAgent(ua string) *Client {
 	c.userAgent = ua
 	c.resty.SetHeader("User-Agent", c.userAgent)
+
+	c.resty.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+
+	return c
+}
+
+// SetTLSClientConfig sets a custom TLSConfig for HTTP requests
+func (c *Client) SetTLSClientConfig(cfg *tls.Config) *Client {
+	c.resty.SetTLSClientConfig(cfg)
 
 	return c
 }

@@ -14,6 +14,8 @@ require (
 	k8s.io/client-go v12.0.0+incompatible
 )
 
+replace github.com/linode/linodego => github.com/tamalsaha/linodego v0.23.1-0.20201102055702-1dbbe021520b
+
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
 
 replace cloud.google.com/go => cloud.google.com/go v0.49.0

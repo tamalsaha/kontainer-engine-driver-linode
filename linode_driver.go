@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -504,6 +505,7 @@ func (d *Driver) getLinodeClient(ctx context.Context, state state) (*raw.Client,
 	}
 	client := raw.NewClient(oauth2Client)
 	client.SetUserAgent("kontainer-engine-driver-linode")
+	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
 	// https://localhost/meta/proxy/api.linode.com/v4/lke/versions
 	client.SetBaseURL("https://localhost/meta/proxy/api.linode.com/v4")
