@@ -227,7 +227,7 @@ func (d *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types
 		return info, err
 	}
 
-	client, err := d.getServiceClient(ctx, state)
+	client, err := d.getLinodeClient(ctx, state)
 	if err != nil {
 		return info, err
 	}
@@ -285,7 +285,7 @@ func (d *Driver) Update(ctx context.Context, info *types.ClusterInfo, opts *type
 		return nil, err
 	}
 
-	client, err := d.getServiceClient(ctx, state)
+	client, err := d.getLinodeClient(ctx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +390,7 @@ func (d *Driver) PostCheck(ctx context.Context, info *types.ClusterInfo) (*types
 	}
 	ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("L366:: state: %#v", state)), 0644)
 
-	client, err := d.getServiceClient(ctx, state)
+	client, err := d.getLinodeClient(ctx, state)
 	if err != nil {
 		ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("L371:: err: %s", err)), 0644)
 		return nil, err
@@ -468,7 +468,7 @@ func (d *Driver) Remove(ctx context.Context, info *types.ClusterInfo) error {
 		return err
 	}
 
-	client, err := d.getServiceClient(ctx, state)
+	client, err := d.getLinodeClient(ctx, state)
 	if err != nil {
 		return err
 	}
@@ -492,10 +492,10 @@ func (d *Driver) Remove(ctx context.Context, info *types.ClusterInfo) error {
 	return nil
 }
 
-func (d *Driver) getServiceClient(ctx context.Context, state state) (*raw.Client, error) {
+func (d *Driver) getLinodeClient(ctx context.Context, state state) (*raw.Client, error) {
 	// Bearer credID=cattle-global-data:cc-rdk9n passwordField=token
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: fmt.Sprintf("credID=%s passwordField=token", state.AccessToken)})
-	oauthTransport := &oauth2.Transport{
+	oauthTransport := &Transport{
 		Source: tokenSource,
 	}
 
@@ -534,7 +534,7 @@ func (d *Driver) GetClusterSize(ctx context.Context, info *types.ClusterInfo) (*
 		return nil, fmt.Errorf("failed to parse cluster id: %s", err)
 	}
 
-	client, err := d.getServiceClient(ctx, state)
+	client, err := d.getLinodeClient(ctx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -562,7 +562,7 @@ func (d *Driver) GetVersion(ctx context.Context, info *types.ClusterInfo) (*type
 		return nil, fmt.Errorf("failed to parse cluster id: %s", err)
 	}
 
-	client, err := d.getServiceClient(ctx, state)
+	client, err := d.getLinodeClient(ctx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -585,7 +585,7 @@ func (d *Driver) SetClusterSize(ctx context.Context, info *types.ClusterInfo, co
 		return fmt.Errorf("failed to parse cluster id: %s", err)
 	}
 
-	client, err := d.getServiceClient(ctx, state)
+	client, err := d.getLinodeClient(ctx, state)
 	if err != nil {
 		return err
 	}
