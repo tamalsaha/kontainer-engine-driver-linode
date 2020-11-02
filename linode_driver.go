@@ -277,14 +277,13 @@ func CreateLKECluster(ctx context.Context, c *raw.Client, createOpts raw.LKEClus
 	if err != nil {
 		return nil, err
 	}
-	logResponse(r.RawResponse)
 	return r.Result().(*raw.LKECluster), nil
 }
 func coupleAPIErrors(r *resty.Response, err error) (*resty.Response, error) {
 	if err != nil {
 		return nil, raw.NewError(err)
 	}
-
+	logResponse(r.RawResponse)
 	if r.Error() != nil {
 		// Check that response is of the correct content-type before unmarshalling
 		expectedContentType := r.Request.Header.Get("Accept")
