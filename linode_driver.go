@@ -495,7 +495,8 @@ func (d *Driver) Remove(ctx context.Context, info *types.ClusterInfo) error {
 }
 
 func (d *Driver) getServiceClient(ctx context.Context, state state) (*raw.Client, error) {
-	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: state.AccessToken})
+	// Bearer credID=cattle-global-data:cc-rdk9n passwordField=token
+	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: fmt.Sprintf("credID=%s passwordField=token", state.AccessToken)})
 	oauthTransport := &oauth2.Transport{
 		Source: tokenSource,
 	}
@@ -504,9 +505,13 @@ func (d *Driver) getServiceClient(ctx context.Context, state state) (*raw.Client
 		Transport: oauthTransport,
 	}
 	client := raw.NewClient(oauth2Client)
-
 	client.SetUserAgent("kontainer-engine-driver-linode")
-	client.SetBaseURL(DefaultLinodeURL)
+
+	// https://localhost/meta/proxy/api.linode.com/v4/lke/versions
+	client.SetBaseURL("https://localhost/meta/proxy/api.linode.com/v4")
+
+	// const DefaultLinodeURL = "https://api.linode.com/v4"
+	// client.SetBaseURL(DefaultLinodeURL)
 
 	return &client, nil
 }
