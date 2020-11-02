@@ -273,6 +273,7 @@ func (d *Driver) Update(ctx context.Context, info *types.ClusterInfo, opts *type
 	if err != nil {
 		return nil, err
 	}
+	state.AccessToken = newState.AccessToken
 
 	client, err := d.getServiceClient(ctx, state)
 	if err != nil {
