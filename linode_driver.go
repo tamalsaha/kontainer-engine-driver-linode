@@ -499,13 +499,15 @@ func (d *Driver) getLinodeClient(ctx context.Context, state state) (*raw.Client,
 	oauthTransport := &Transport{
 		Source: tokenSource,
 	}
-
+	if transport, ok := http.DefaultTransport.(*http.Transport); ok {
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		oauthTransport.Base = transport
+	}
 	oauth2Client := &http.Client{
 		Transport: oauthTransport,
 	}
 	client := raw.NewClient(oauth2Client)
 	client.SetUserAgent("kontainer-engine-driver-linode")
-	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
 	// https://localhost/meta/proxy/api.linode.com/v4/lke/versions
 	client.SetBaseURL("https://localhost/meta/proxy/api.linode.com/v4")
