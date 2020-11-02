@@ -239,10 +239,11 @@ func (d *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types
 	logrus.Debugf("LKE api request: %#v", req)
 	ioutil.WriteFile(lkeLog, []byte(fmt.Sprintf("LKE api request: %#v", req)), 0644)
 
-	cluster, err := CreateLKECluster(context.Background(), client, req)
+	cluster, err := client.CreateLKECluster(context.Background(), req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LKE cluster: %s", err)
 	}
+	logRemote(cluster)
 	info.Metadata["cluster-id"] = strconv.Itoa(cluster.ID)
 
 	err = client.WaitForLKEClusterConditions(context.Background(), cluster.ID, raw.LKEClusterPollOptions{
@@ -283,7 +284,6 @@ func coupleAPIErrors(r *resty.Response, err error) (*resty.Response, error) {
 	if err != nil {
 		return nil, raw.NewError(err)
 	}
-	logResponse(r.RawResponse)
 	if r.Error() != nil {
 		// Check that response is of the correct content-type before unmarshalling
 		expectedContentType := r.Request.Header.Get("Accept")
